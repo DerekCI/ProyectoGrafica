@@ -1,0 +1,14 @@
+newmtl Television:lambert2SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd television1.jpg
+Ni 1.00
+newmtl Television:lambert3SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+map_Kd television2.jpg
+Ni 1.00
