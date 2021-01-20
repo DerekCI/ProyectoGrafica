@@ -100,6 +100,10 @@ FRAME KeyFrame[MAX_FRAMES];
 int FrameIndex = 0;			//introducir datos
 bool play = false;
 bool play2 = false;
+bool play3 = false;
+bool play3_1 = false;
+bool play4 = false;
+bool play4_1 = false;
 int playIndex = 0;
 
 // Positions of the point lights
@@ -229,9 +233,9 @@ int main()
 	Model Computadora1((char*)"Models/Proyecto/Computadora.obj");
 	Model Computadora2((char*)"Models/Proyecto/Computadora1.obj");
 	Model Libro((char*)"Models/Proyecto/Libro.obj");
-	Model Mueble1((char*)"Models/Proyecto/MuebleTv.obj");
-	Model Mueble2((char*)"Models/Proyecto/muebleTV1.obj");
-	Model Mueble3((char*)"Models/Proyecto/MuebleTV2.obj");
+	//Model Mueble1((char*)"Models/Proyecto/MuebleTv.obj");
+	//Model Mueble2((char*)"Models/Proyecto/muebleTV1.obj");
+	//Model Mueble3((char*)"Models/Proyecto/MuebleTV2.obj");
 	Model Pikachu((char*)"Models/Proyecto/Pikachu.obj");
 	Model Reloj1((char*)"Models/Proyecto/Reloj.obj");
 	Model Reloj2((char*)"Models/Proyecto/Reloj1.obj");
@@ -462,7 +466,61 @@ int main()
 	faces.push_back("SkyBox/front.tga");
 
 	GLuint cubemapTexture = TextureLoading::LoadCubemap(faces);
+	// ----
+	GLuint texture3, texture4;
+	glGenTextures(1, &texture3);
+	glGenTextures(1, &texture4);
 
+	int textureWidth2, textureHeight2, nrChannels2;
+	stbi_set_flip_vertically_on_load(true);
+	unsigned char* image2;
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+	// Diffuse map
+	image2 = stbi_load("Models/Proyecto/poke.jpg", &textureWidth2, &textureHeight2, &nrChannels2, 0);
+	glBindTexture(GL_TEXTURE_2D, texture3);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, textureWidth2, textureHeight2, 0, GL_RGB, GL_UNSIGNED_BYTE, image2);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	if (image2)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, textureWidth2, textureHeight2, 0, GL_RGB, GL_UNSIGNED_BYTE, image2);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+	}
+	stbi_image_free(image2);
+
+	// Specular map
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+	image2 = stbi_load("Models/Proyecto/muebleTv.jpg", &textureWidth2, &textureHeight2, &nrChannels2, 0);
+	glBindTexture(GL_TEXTURE_2D, texture4);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, textureWidth2, textureHeight2, 0, GL_RGB, GL_UNSIGNED_BYTE, image2);
+	glGenerateMipmap(GL_TEXTURE_2D);
+	if (image2)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, textureWidth2, textureHeight2, 0, GL_RGB, GL_UNSIGNED_BYTE, image2);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+	}
+	stbi_image_free(image2);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	//Set textures units
+	lightingShader.Use();
+	glUniform1i(glGetUniformLocation(lightingShader.Program, "text3"), 2);
+	glUniform1i(glGetUniformLocation(lightingShader.Program, "text4"), 3);
+	// ----
 	glm::mat4 projection = glm::perspective(camera.GetZoom(), (GLfloat)SCREEN_WIDTH / (GLfloat)SCREEN_HEIGHT, 0.1f, 1000.0f);
 
 	// Game loop
@@ -571,48 +629,71 @@ int main()
 		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 		glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-		// Bind diffuse map
-		//glBindTexture(GL_TEXTURE_2D, texture1);*/
+		//Bind diffuse map
+		glBindTexture(GL_TEXTURE_2D, texture3);
 
-		// Bind specular map
-		/*glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, texture2);*/
+		//Bind specular map
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture4);
 
 
 		glBindVertexArray(VAO);
 		glm::mat4 tmp = glm::mat4(1.0f); //Temp
+		glm::mat4 model(1);
+		
+		//Mueble TV
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-10.48f, 0.5f, -1.37f));
+		model = glm::scale(model, glm::vec3(2.0f, 1.5f, 7.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		//Cajon de mueble
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-9.8f, 0.5f, -3.0f));
+		model = glm::scale(model, glm::vec3(1.0, 0.8f, 3.0f));
+		model = glm::translate(model, glm::vec3(movMueble, 0.0f, 0.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		//Cajon de mueble
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-9.8f, 0.5f, 0.5f));
+		model = glm::scale(model, glm::vec3(1.0, 0.8f, 3.0f));
+		model = glm::translate(model, glm::vec3(movMueble, 0.0f, 0.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 
 
 		//Carga de modelo 
 		//Television
 		view = camera.GetViewMatrix();
-		glm::mat4 model(1);
+		model = glm::mat4(1);
 		//tmp = model = glm::translate(model, glm::vec3(0, 1, 0));
 		model = glm::translate(model, glm::vec3(-10.54f, 1.0f, -1.30f));
 		model = glm::scale(model, glm::vec3(1.0f, 1.83f, 1.57f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		Television.Draw(lightingShader);
-		//Mueble TV (1)
-		view = camera.GetViewMatrix();
-		model = glm::mat4(1);
-		tmp = model = glm::translate(model, glm::vec3(-10.48f, 0.0f, -1.37f));
-		model = glm::scale(model, glm::vec3(1.2f, 1.5f, 2.0f));
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-		Mueble1.Draw(lightingShader);
-		//Mueble (2)
-		view = camera.GetViewMatrix();
-		model = glm::translate(model, glm::vec3(movMueble, 0.0f, 0.0f));
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-		Mueble2.Draw(lightingShader);
-		//Mueble (3)
-		view = camera.GetViewMatrix();
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-		Mueble3.Draw(lightingShader);
+		////Mueble TV (1)
+		//view = camera.GetViewMatrix();
+		//model = glm::mat4(1);
+		//tmp = model = glm::translate(model, glm::vec3(-10.48f, 0.0f, -1.37f));
+		//model = glm::scale(model, glm::vec3(1.2f, 1.5f, 2.0f));
+		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		//Mueble1.Draw(lightingShader);
+		////Mueble (2)
+		//view = camera.GetViewMatrix();
+		//model = glm::translate(model, glm::vec3(movMueble, 0.0f, 0.0f));
+		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		//Mueble2.Draw(lightingShader);
+		////Mueble (3)
+		//view = camera.GetViewMatrix();
+		//glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		//Mueble3.Draw(lightingShader);
 		//Libro
 		view = camera.GetViewMatrix();
 		model = glm::mat4(1);
-		tmp = model = glm::translate(model, glm::vec3(1.5f,-0.2f, 8.0f));
+		//tmp = model = glm::translate(model, glm::vec3(0, 1, 0));
+		model = glm::translate(model, glm::vec3(2.0f, 0.0f, 8.0f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		Libro.Draw(lightingShader);
 		//Computadora (1)
@@ -837,6 +918,38 @@ void animacion()
 		}
 
 	}
+	else if (play3) {
+		if (movMueble > 0.5) {
+			play3 = false;
+		}
+		else {
+			movMueble += 0.001f;
+		}
+	}
+	else if (play3_1) {
+		if (movMueble < 0.0) {
+			play3_1 = false;
+		}
+		else {
+			movMueble -= 0.001f;
+		}
+	}
+	else if (play4) {
+		if (rotCompu > 45.0) {
+			play4 = false;
+		}
+		else {
+			rotCompu += 0.45f;
+		}
+	}
+	else if (play4_1) {
+		if (rotCompu < 0.0) {
+			play4_1 = false;
+		}
+		else {
+			rotCompu -= 0.45f;
+		}
+	}
 	if (circuito)
 	{
 		if (recorrido1)
@@ -982,38 +1095,22 @@ void DoMovement()
 	}
 	if (keys[GLFW_KEY_M])
 	{
-		if (movMueble > 0.5) {
-			movMueble += 0.000f;
-		}
-		else {
-			movMueble += 0.001f;
-		}
-			
-	}
-	
+		play3 = !play3;
 
+	}
 	if (keys[GLFW_KEY_N])
 	{
-		if (movMueble < 0.0) {
-			movMueble -= 0.000f;
-		}
-		else {
-			movMueble -= 0.001f;
-		}
+		play3_1 = !play3_1;
 
 	}
 	if (keys[GLFW_KEY_C])
 	{
-		if (rotCompu < 45) {
-			rotCompu += 0.45f;
-		}
+		play4 = !play4;
 
 	}
 	if (keys[GLFW_KEY_V])
 	{
-		if (rotCompu > 0) {
-			rotCompu -= 0.45f;
-		}
+		play4_1 = !play4_1;
 
 	}
 
